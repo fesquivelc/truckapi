@@ -1,0 +1,131 @@
+package com.test.truckapi.infrastructure.web.controllers;
+
+import com.test.truckapi.domain.ports.input.TruckServicePort;
+import com.test.truckapi.infrastructure.web.dto.CreateTruckRequestDTO;
+import com.test.truckapi.infrastructure.web.dto.ErrorResponseDTO;
+import com.test.truckapi.infrastructure.web.dto.TruckResponseDTO;
+import com.test.truckapi.infrastructure.web.mapper.DtoMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.UUID;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/trucks")
+@RequiredArgsConstructor
+@Tag(name = "Trucks", description = "API para la gestión de camiones")
+public class TruckController {
+
+    private final TruckServicePort truckService;
+    private final DtoMapper dtoMapper;
+
+    @Operation(summary = "Registrar un nuevo camión")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Camión creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+    })
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<TruckResponseDTO> registerTruck(@Valid @RequestBody CreateTruckRequestDTO request) {
+        log.debug("Registrando nuevo camión: {}", request);
+        return Mono.just(request)
+                .map(dtoMapper::toDomain)
+                .flatMap(truckService::registerTruck)
+                .map(dtoMapper::toDto)
+                .onErrorResume(e ->
+                        Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage()))
+                );
+    }
+
+    @Operation(summary = "Obtener todos los camiones")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public Flux<TruckResponseDTO> getAllTrucks() {
+        log.debug("Obteniendo todos los camiones");
+        return truckService.getAllTrucks()
+                .map(dtoMapper::toDto);
+    }
+
+    @Operation(summary = "Obtener un camión por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Camión encontrado"),
+            @ApiResponse(responseCode = "404", description = "Camión no encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+    })
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<TruckResponseDTO> getTruckById(
+            @Parameter(description = "ID del camión") @PathVariable String id) {
+        log.debug("Obteniendo camión con ID: {}", id);
+        return truckService.getTruckById(UUID.fromString(id))
+                .map(dtoMapper::toDto)
+                .onErrorMap(e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e));
+    }
+
+    //    @Operation(summary = "Cargar un camión")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "Carga exitosa"),
+//            @ApiResponse(responseCode = "404", description = "Camión no encontrado"),
+//            @ApiResponse(responseCode = "400", description = "Carga inválida")
+//    })
+//    @PostMapping(value = "/{id}/load", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Mono<TruckResponseDTO> loadTruck(
+//            @Parameter(description = "ID del camión") @PathVariable String id,
+//            @Valid @RequestBody LoadRequestDTO request) {
+//        log.debug("Cargando camión {}: {}", id, request);
+//        return truckService.loadTruck(
+//                        UUID.fromString(id),
+//                        request.getVolume(),
+//                        request.getDescription()
+//                )
+//                .map(dtoMapper::toDto);
+//    }
+//
+//    @Operation(summary = "Descargar un camión")
+//    @PostMapping(value = "/{id}/unload", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Mono<TruckResponseDTO> unloadTruck(
+//            @Parameter(description = "ID del camión") @PathVariable String id) {
+//        log.debug("Descargando camión: {}", id);
+//        return truckService.unloadTruck(UUID.fromString(id))
+//                .map(dtoMapper::toDto);
+//    }
+//
+//    @Operation(summary = "Obtener el historial de cargas de un camión")
+//    @GetMapping(value = "/{id}/loads", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Flux<LoadResponseDTO> getTruckLoads(
+//            @Parameter(description = "ID del camión") @PathVariable String id) {
+//        log.debug("Obteniendo historial de cargas del camión: {}", id);
+//        return truckService.getTruckLoads(UUID.fromString(id))
+//                .map(dtoMapper::toDto);
+//    }
+//
+    @Operation(summary = "Eliminar un camión")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Camión eliminado"),
+            @ApiResponse(responseCode = "404", description = "Camión no encontrado"),
+            @ApiResponse(responseCode = "400", description = "No se puede eliminar el camión")
+    })
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteTruck(
+            @Parameter(description = "ID del camión") @PathVariable String id) {
+        log.debug("Eliminando camión: {}", id);
+        return truckService
+                .deleteTruck(UUID.fromString(id))
+                .onErrorMap(e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e));
+    }
+}

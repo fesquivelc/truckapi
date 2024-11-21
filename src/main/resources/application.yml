@@ -1,0 +1,31 @@
+spring:
+  r2dbc:
+    host: ${DB_HOST:127.0.0.1}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:truckdb}
+    username: ${DB_USER:truckapi}
+    password: ${DB_PASSWORD:truckapi}
+    pool:
+      initial-size: 5
+      max-size: 20
+
+logging:
+  level:
+    root: INFO
+    com.company.trucks: DEBUG
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql.QUERY: DEBUG
+    io.r2dbc.postgresql.PARAM: DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always

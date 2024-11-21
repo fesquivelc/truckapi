@@ -1,0 +1,74 @@
+<configuration>
+    <property name="LOGS" value="./logs" />
+<!--    <property name="LOGSTASH_HOST" value="localhost" />-->
+<!--    <property name="LOGSTASH_PORT" value="5044" />-->
+
+    <!-- Console Appender -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{ISO8601} %-5level [%t] %C{1}: %msg%n%throwable
+            </Pattern>
+        </layout>
+    </appender>
+
+    <!-- File Appender -->
+    <appender name="JsonFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/trucks-service.json</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <customFields>{"application":"trucks-service"}</customFields>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/archived/trucks-service-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Logstash Appender -->
+<!--    <appender name="Logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--        <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>-->
+<!--        <encoder class="net.logstash.logback.encoder.LogstashEncoder">-->
+<!--            <includeMdcKeyName>correlationId</includeMdcKeyName>-->
+<!--            <includeMdcKeyName>userId</includeMdcKeyName>-->
+<!--            <customFields>{"application":"trucks-service"}</customFields>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+    <!-- Async Appender for better performance -->
+    <appender name="AsyncJsonFile" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="JsonFile" />
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+<!--    <appender name="AsyncLogstash" class="ch.qos.logback.classic.AsyncAppender">-->
+<!--        <appender-ref ref="Logstash" />-->
+<!--        <queueSize>512</queueSize>-->
+<!--        <discardingThreshold>0</discardingThreshold>-->
+<!--        <includeCallerData>true</includeCallerData>-->
+<!--    </appender>-->
+
+    <!-- Root Logger -->
+    <root level="INFO">
+        <appender-ref ref="Console" />
+        <appender-ref ref="AsyncJsonFile" />
+<!--        <appender-ref ref="AsyncLogstash" />-->
+    </root>
+
+    <!-- Specific Logger for the application -->
+    <logger name="com.test.truckapi" level="DEBUG" additivity="false">
+        <appender-ref ref="Console" />
+        <appender-ref ref="AsyncJsonFile" />
+<!--        <appender-ref ref="AsyncLogstash" />-->
+    </logger>
+
+    <!-- Logging for Spring and R2DBC -->
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.data.r2dbc" level="DEBUG"/>
+    <logger name="io.r2dbc.postgresql.QUERY" level="DEBUG"/>
+    <logger name="io.r2dbc.postgresql.PARAM" level="DEBUG"/>
+</configuration>
