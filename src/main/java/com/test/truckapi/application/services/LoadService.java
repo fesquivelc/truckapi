@@ -34,6 +34,7 @@ public class LoadService implements LoadServicePort {
     }
 
     private Mono<Void> resolveLoad(UUID truckId, Load load) {
+
         var truck = truckPort.findTruckById(truckId);
         return null;
     }
