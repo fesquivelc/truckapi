@@ -10,6 +10,6 @@ INSERT INTO trucks (id, license_plate, model, capacity_limit, current_load, stat
 
 -- loads
 INSERT INTO loads (truck_id, volume, description, load_timestamp, unload_timestamp, created_at)
-    VALUES ('f7b3b3b4-0b3b-4b3b-8b3b-3b3b3b3b3b3b', 20, 'JBL Partybox 310', CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP);
+    VALUES ('123e4567-e89b-12d3-a456-426614174000', 20, 'JBL Partybox 310', CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP);
 INSERT INTO loads (truck_id, volume, description, load_timestamp, unload_timestamp, created_at)
-    VALUES ('f7b3b3b4-0b3b-4b3b-8b3b-3b3b3b3b3b3b', 25, 'Televisor Samsung 50 pulgadas', CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP);
+    VALUES ('123e4567-e89b-12d3-a456-426614174000', 25, 'Televisor Samsung 50 pulgadas', CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP);

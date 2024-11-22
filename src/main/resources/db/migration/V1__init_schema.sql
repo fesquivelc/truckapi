@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS loads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     truck_id UUID NOT NULL,
     volume DOUBLE PRECISION NOT NULL,
-    description TEXT,
+    description TEXT NOT NULL,
     load_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     unload_timestamp TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
