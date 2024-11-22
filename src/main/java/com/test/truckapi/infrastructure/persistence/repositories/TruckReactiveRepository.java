@@ -11,8 +11,10 @@ import java.util.UUID;
 
 @Repository
 public interface TruckReactiveRepository extends ReactiveCrudRepository<TruckEntity, UUID> {
+    @Query("SELECT t.* FROM trucks t WHERE t.id = :truckId AND t.is_deleted = FALSE")
     Mono<TruckEntity> findByIdAndIsDeletedFalse(UUID truckId);
 
+    @Query("SELECT t.* FROM trucks t WHERE t.is_deleted = FALSE")
     Flux<TruckEntity> findAllByIsDeletedFalse();
 
     @Query("UPDATE trucks SET is_deleted = TRUE WHERE id = :id")

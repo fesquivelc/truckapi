@@ -3,10 +3,12 @@ package com.test.truckapi.infrastructure.persistence.entities;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Data
@@ -15,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class LoadEntity {
+public class LoadEntity implements Persistable<UUID> {
     @Id
     @EqualsAndHashCode.Include
     private UUID id;
@@ -36,4 +38,9 @@ public class LoadEntity {
     @Version
     @Column
     private Long version;
+
+    @Override
+    public boolean isNew() {
+        return Objects.isNull(id);
+    }
 }

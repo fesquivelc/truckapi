@@ -14,17 +14,19 @@ public class LoadMapper {
                 .description(entity.getDescription())
                 .loadTimestamp(entity.getLoadTimestamp())
                 .unloadTimestamp(entity.getUnloadTimestamp())
+                .version(entity.getVersion())
                 .build();
     }
 
     public LoadEntity toEntity(Load domain) {
         return LoadEntity.builder()
-                .id(domain.id())
-                .truckId(domain.truckId())
-                .volume(domain.volume())
-                .description(domain.description())
-                .loadTimestamp(domain.loadTimestamp())
-                .unloadTimestamp(domain.unloadTimestamp())
+                .id(domain.getId())
+                .truckId(domain.getTruckId())
+                .volume(domain.getVolume())
+                .description(domain.getDescription())
+                .loadTimestamp(domain.getLoadTimestamp())
+                .unloadTimestamp(domain.getUnloadTimestamp())
+                .version(domain.getVersion())
                 .build();
     }
 }

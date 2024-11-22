@@ -1,9 +1,7 @@
 package com.test.truckapi.application.services;
 
-import com.test.truckapi.domain.entities.Load;
 import com.test.truckapi.domain.entities.Truck;
 import com.test.truckapi.domain.enums.TruckStatus;
-import com.test.truckapi.domain.exceptions.TruckNotFoundException;
 import com.test.truckapi.domain.exceptions.TruckNotUnloadedException;
 import com.test.truckapi.domain.ports.input.TruckServicePort;
 import com.test.truckapi.domain.ports.output.TruckPort;
@@ -14,6 +12,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+
+import static com.test.truckapi.application.utils.ExceptionUtils.buildNotFoundTruckException;
 
 @Slf4j
 @Service
@@ -34,22 +34,13 @@ public class TruckService implements TruckServicePort {
     }
 
     private Mono<Void> resolveDeleteTruck(Truck truck) {
-        if (truck.status() != TruckStatus.UNLOADED) {
-            log.error("[TruckNotUnloaded] id={}", truck.id());
+        if (truck.getStatus() != TruckStatus.UNLOADED) {
+            log.error("[TruckNotUnloaded] id={}", truck.getId());
             return Mono.error(
-                    new TruckNotUnloadedException(String.format("Truck with id=%s has loads", truck.id()))
+                    new TruckNotUnloadedException(String.format("Truck with id=%s has loads", truck.getId()))
             );
         }
-        return truckPort.deleteTruck(truck.id());
-    }
-
-    private static <T> Mono<T> buildNotFoundTruckException(UUID truckId) {
-        return Mono.defer(() -> {
-            log.error("[TruckNotFound] id={}", truckId);
-            return Mono.error(
-                    new TruckNotFoundException(String.format("Truck with id=%s not found", truckId))
-            );
-        });
+        return truckPort.deleteTruck(truck.getId());
     }
 
     @Override

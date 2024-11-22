@@ -9,9 +9,7 @@ import org.springframework.stereotype.Component;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class DtoMapper {
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
-
+public class TruckDtoMapper {
     public Truck toDomain(CreateTruckRequestDTO dto) {
         return Truck.builder()
                 .licensePlate(dto.getLicensePlate())
@@ -24,12 +22,12 @@ public class DtoMapper {
 
     public TruckResponseDTO toDto(Truck truck) {
         return TruckResponseDTO.builder()
-                .id(truck.id().toString())
-                .licensePlate(truck.licensePlate())
-                .model(truck.model())
-                .capacityLimit(truck.capacityLimit())
-                .currentLoad(truck.currentLoad())
-                .status(truck.status().name())
+                .id(truck.getId().toString())
+                .licensePlate(truck.getLicensePlate())
+                .model(truck.getModel())
+                .capacityLimit(truck.getCapacityLimit())
+                .currentLoad(truck.getCurrentLoad())
+                .status(truck.getStatus().name())
                 .build();
     }
 //
@@ -57,5 +55,16 @@ public class DtoMapper {
 //
 //    private String formatDateTime(LocalDateTime dateTime) {
 //        return dateTime != null ? dateTime.format(DATE_FORMATTER) : null;
+//    }
+
+//    public LoadResponseDTO toDto(Load load) {
+//        return LoadResponseDTO.builder()
+//                .id(load.getId().toString())
+//                .volume(load.getVolume())
+//                .description(load.getDescription())
+//                .loadTimestamp(formatDateTime(load.getLoadTimestamp()))
+//                .unloadTimestamp(load.getUnloadTimestamp() != null ?
+//                        formatDateTime(load.getUnloadTimestamp()) : null)
+//                .build();
 //    }
 }

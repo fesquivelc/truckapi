@@ -1,10 +1,10 @@
 package com.test.truckapi.infrastructure.web.controllers;
 
+import com.test.truckapi.domain.ports.input.LoadServicePort;
 import com.test.truckapi.domain.ports.input.TruckServicePort;
-import com.test.truckapi.infrastructure.web.dto.CreateTruckRequestDTO;
-import com.test.truckapi.infrastructure.web.dto.ErrorResponseDTO;
-import com.test.truckapi.infrastructure.web.dto.TruckResponseDTO;
-import com.test.truckapi.infrastructure.web.mapper.DtoMapper;
+import com.test.truckapi.infrastructure.web.dto.*;
+import com.test.truckapi.infrastructure.web.mapper.LoadDtoMapper;
+import com.test.truckapi.infrastructure.web.mapper.TruckDtoMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,13 +28,15 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/trucks")
 @RequiredArgsConstructor
-@Tag(name = "Trucks", description = "API para la gestión de camiones")
+@Tag(name = "Trucks", description = "API to manage trucks and loads")
 public class TruckController {
 
     private final TruckServicePort truckService;
-    private final DtoMapper dtoMapper;
+    private final LoadServicePort loadServicePort;
+    private final TruckDtoMapper truckDtoMapper;
+    private final LoadDtoMapper loadDtoMapper;
 
-    @Operation(summary = "Registrar un nuevo camión")
+    @Operation(summary = "Create a new truck")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Camión creado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos",
@@ -45,23 +47,23 @@ public class TruckController {
     public Mono<TruckResponseDTO> registerTruck(@Valid @RequestBody CreateTruckRequestDTO request) {
         log.debug("Registrando nuevo camión: {}", request);
         return Mono.just(request)
-                .map(dtoMapper::toDomain)
+                .map(truckDtoMapper::toDomain)
                 .flatMap(truckService::registerTruck)
-                .map(dtoMapper::toDto)
+                .map(truckDtoMapper::toDto)
                 .onErrorResume(e ->
                         Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage()))
                 );
     }
 
-    @Operation(summary = "Obtener todos los camiones")
+    @Operation(summary = "Get all trucks")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<TruckResponseDTO> getAllTrucks() {
         log.debug("Obteniendo todos los camiones");
         return truckService.getAllTrucks()
-                .map(dtoMapper::toDto);
+                .map(truckDtoMapper::toDto);
     }
 
-    @Operation(summary = "Obtener un camión por ID")
+    @Operation(summary = "Get truck by ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Camión encontrado"),
             @ApiResponse(responseCode = "404", description = "Camión no encontrado",
@@ -72,29 +74,28 @@ public class TruckController {
             @Parameter(description = "ID del camión") @PathVariable String id) {
         log.debug("Obteniendo camión con ID: {}", id);
         return truckService.getTruckById(UUID.fromString(id))
-                .map(dtoMapper::toDto)
+                .map(truckDtoMapper::toDto)
                 .onErrorMap(e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e));
     }
 
-    //    @Operation(summary = "Cargar un camión")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "Carga exitosa"),
-//            @ApiResponse(responseCode = "404", description = "Camión no encontrado"),
-//            @ApiResponse(responseCode = "400", description = "Carga inválida")
-//    })
-//    @PostMapping(value = "/{id}/load", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Mono<TruckResponseDTO> loadTruck(
-//            @Parameter(description = "ID del camión") @PathVariable String id,
-//            @Valid @RequestBody LoadRequestDTO request) {
-//        log.debug("Cargando camión {}: {}", id, request);
-//        return truckService.loadTruck(
-//                        UUID.fromString(id),
-//                        request.getVolume(),
-//                        request.getDescription()
-//                )
-//                .map(dtoMapper::toDto);
-//    }
-//
+    @Operation(summary = "Load a truck")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "404", description = "Truck not found"),
+            @ApiResponse(responseCode = "400", description = "Some data is invalid")
+    })
+    @PostMapping(value = "/{id}/load", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<LoadResponseDTO> loadTruck(
+            @Parameter(description = "ID del camión") @PathVariable String id,
+            @Valid @RequestBody LoadRequestDTO request) {
+        log.debug("Cargando camión {}: {}", id, request);
+        return Mono.just(request)
+                .map(dto -> loadDtoMapper.toDomain(dto, UUID.fromString(id)))
+                .flatMap(loadServicePort::loadTruck)
+                .map(loadDtoMapper::toDto);
+    }
+
+    //
 //    @Operation(summary = "Descargar un camión")
 //    @PostMapping(value = "/{id}/unload", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public Mono<TruckResponseDTO> unloadTruck(
@@ -104,15 +105,15 @@ public class TruckController {
 //                .map(dtoMapper::toDto);
 //    }
 //
-//    @Operation(summary = "Obtener el historial de cargas de un camión")
-//    @GetMapping(value = "/{id}/loads", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Flux<LoadResponseDTO> getTruckLoads(
-//            @Parameter(description = "ID del camión") @PathVariable String id) {
-//        log.debug("Obteniendo historial de cargas del camión: {}", id);
-//        return truckService.getTruckLoads(UUID.fromString(id))
-//                .map(dtoMapper::toDto);
-//    }
-//
+    @Operation(summary = "Get the loads of a truck")
+    @GetMapping(value = "/{id}/loads", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Flux<LoadResponseDTO> getTruckLoads(
+            @Parameter(description = "ID del camión") @PathVariable String id) {
+        log.debug("Obteniendo historial de cargas del camión: {}", id);
+        return loadServicePort.getLoadsByTruck(UUID.fromString(id))
+                .map(loadDtoMapper::toDto);
+    }
+
     @Operation(summary = "Eliminar un camión")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Camión eliminado"),

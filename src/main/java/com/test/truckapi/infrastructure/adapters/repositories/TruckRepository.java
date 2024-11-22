@@ -5,6 +5,7 @@ import com.test.truckapi.domain.ports.output.TruckPort;
 import com.test.truckapi.infrastructure.adapters.mappers.TruckMapper;
 import com.test.truckapi.infrastructure.persistence.repositories.TruckReactiveRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,12 +17,21 @@ import java.util.UUID;
 public class TruckRepository implements TruckPort {
     private final TruckReactiveRepository truckReactiveRepository;
     private final TruckMapper truckMapper;
+    private final R2dbcEntityTemplate template;
 
     @Override
     public Mono<Truck> saveTruck(Truck truck) {
         return Mono.just(truck)
                 .map(truckMapper::toEntity)
                 .flatMap(truckReactiveRepository::save)
+                .map(truckMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Truck> updateTruck(Truck truck) {
+        return Mono.just(truck)
+                .map(truckMapper::toEntity)
+                .flatMap(template::update)
                 .map(truckMapper::toDomain);
     }
 

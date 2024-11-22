@@ -15,17 +15,19 @@ public class TruckMapper {
                 .capacityLimit(entity.getCapacityLimit())
                 .currentLoad(entity.getCurrentLoad())
                 .status(TruckStatus.valueOf(entity.getStatus()))
+                .version(entity.getVersion())
                 .build();
     }
 
     public TruckEntity toEntity(Truck domain) {
         return TruckEntity.builder()
-                .id(domain.id())
-                .licensePlate(domain.licensePlate())
-                .model(domain.model())
-                .capacityLimit(domain.capacityLimit())
-                .currentLoad(domain.currentLoad())
-                .status(domain.status().name())
+                .id(domain.getId())
+                .licensePlate(domain.getLicensePlate())
+                .model(domain.getModel())
+                .capacityLimit(domain.getCapacityLimit())
+                .currentLoad(domain.getCurrentLoad())
+                .status(domain.getStatus().name())
+                .version(domain.getVersion())
                 .build();
     }
 }
