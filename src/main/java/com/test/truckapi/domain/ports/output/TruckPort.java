@@ -8,7 +8,6 @@ import java.util.UUID;
 
 public interface TruckPort {
     Mono<Truck> saveTruck(Truck truck);
-    Mono<Truck> updateTruck(Truck truck);
     Flux<Truck> getAllTrucks();
     Mono<Void> deleteTruck(UUID truckId);
     Mono<Truck> findTruckById(UUID truckId);

@@ -64,7 +64,7 @@ public class LoadService implements LoadServicePort {
                     load.setTruckId(truckId);
                     truck.setCurrentLoad(newCurrentLoad);
                     truck.setStatus(newCurrentLoad == truck.getCapacityLimit() ? TruckStatus.LOADED : TruckStatus.AVAILABLE);
-                    return truckPort.updateTruck(truck).then(loadPort.saveLoad(load));
+                    return truckPort.saveTruck(truck).then(loadPort.saveLoad(load));
                 });
     }
 

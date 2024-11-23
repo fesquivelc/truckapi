@@ -29,10 +29,6 @@ public class LoadEntity implements Persistable<UUID> {
     private LocalDateTime loadTimestamp;
     @Column("unload_timestamp")
     private LocalDateTime unloadTimestamp;
-    @Column("created_at")
-    private LocalDateTime createdAt;
-    @Column("updated_at")
-    private LocalDateTime updatedAt;
     @Column("truck_id")
     private UUID truckId;
     @Version

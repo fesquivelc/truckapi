@@ -17,21 +17,12 @@ import java.util.UUID;
 public class TruckRepository implements TruckPort {
     private final TruckReactiveRepository truckReactiveRepository;
     private final TruckMapper truckMapper;
-    private final R2dbcEntityTemplate template;
 
     @Override
     public Mono<Truck> saveTruck(Truck truck) {
         return Mono.just(truck)
                 .map(truckMapper::toEntity)
                 .flatMap(truckReactiveRepository::save)
-                .map(truckMapper::toDomain);
-    }
-
-    @Override
-    public Mono<Truck> updateTruck(Truck truck) {
-        return Mono.just(truck)
-                .map(truckMapper::toEntity)
-                .flatMap(template::update)
                 .map(truckMapper::toDomain);
     }
 
